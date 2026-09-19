@@ -141,21 +141,54 @@ def build() -> str:
 
     parts.append('<h1 seq="auto">参考文献</h1>')
     refs = [
-        "LeCun Y, et al. Gradient-based learning applied to document recognition. Proc. IEEE, 1998. DOI: 10.1109/5.726791.",
-        "Xiao H, Rasul K, Vollgraf R. Fashion-MNIST. arXiv:1708.07747, 2017.",
-        "Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.",
-        "Hendrycks D, Gimpel K. GELUs. arXiv:1606.08415, 2016.",
-        "Maas A L, et al. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.",
-        "Srivastava N, et al. Dropout. JMLR, 2014, 15(1): 1929–1958.",
-        "Ioffe S, Szegedy C. Batch normalization. ICML, 2015.",
-        "Kingma D P, Ba J. Adam. ICLR, 2015. arXiv:1412.6980.",
-        "Tieleman T, Hinton G. RMSProp. COURSERA, 2012.",
-        "Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012.",
+        (
+            "LeCun Y, et al. Gradient-based learning applied to document recognition. Proc. IEEE, 1998.",
+            "https://doi.org/10.1109/5.726791",
+        ),
+        (
+            "Xiao H, Rasul K, Vollgraf R. Fashion-MNIST. arXiv:1708.07747, 2017.",
+            "https://arxiv.org/abs/1708.07747",
+        ),
+        (
+            "Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.",
+            "https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf",
+        ),
+        (
+            "Hendrycks D, Gimpel K. GELUs. arXiv:1606.08415, 2016.",
+            "https://arxiv.org/abs/1606.08415",
+        ),
+        (
+            "Maas A L, et al. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.",
+            "https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf",
+        ),
+        (
+            "Srivastava N, et al. Dropout. JMLR, 2014, 15(1): 1929–1958.",
+            "https://jmlr.org/papers/v15/srivastava14a.html",
+        ),
+        (
+            "Ioffe S, Szegedy C. Batch normalization. ICML, 2015.",
+            "https://proceedings.mlr.press/v37/ioffe15.html",
+        ),
+        (
+            "Kingma D P, Ba J. Adam. ICLR, 2015. arXiv:1412.6980.",
+            "https://arxiv.org/abs/1412.6980",
+        ),
+        (
+            "Tieleman T, Hinton G. RMSProp. COURSERA, 2012.",
+            "https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf",
+        ),
+        (
+            "Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012.",
+            "https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html",
+        ),
     ]
-    parts.append("<ol>" + "".join(f"<li>{t(r)}</li>" for r in refs) + "</ol>")
+    lis = "".join(
+        f'<li>{t(text)} <a href="{t(url)}">{t(url)}</a></li>' for text, url in refs
+    )
+    parts.append(f"<ol>{lis}</ol>")
 
     parts.append('<h1 seq="auto">附录 源代码说明</h1>')
-    parts.append(p("入口 run_experiment.py。默认相对仓库根目录读写 data/ 与 results/，--device auto 在有 CUDA 时用 GPU。"))
+    parts.append(p("代码：https://github.com/yiyun-li/improved-lenet-fashion-mnist 。入口 run_experiment.py。默认相对仓库根目录读写 data/ 与 results/，--device auto 在有 CUDA 时用 GPU。"))
     parts.append(
         '<pre lang="bash" caption="复现"><code>'
         + t("python -m pip install -r requirements.txt\npython run_experiment.py --device auto --epochs 15 --batch-size 128")

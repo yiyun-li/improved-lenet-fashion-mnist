@@ -161,25 +161,25 @@ Fashion-MNIST 的类间差距比 MNIST 大，消融差出现在百分位上。�
 
 ## 4 参考文献
 
-[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. DOI: 10.1109/5.726791.
+[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. [https://doi.org/10.1109/5.726791](https://doi.org/10.1109/5.726791)
 
-[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017.
+[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017. [https://arxiv.org/abs/1708.07747](https://arxiv.org/abs/1708.07747)
 
-[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.
+[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010. [https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf](https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf)
 
-[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016.
+[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016. [https://arxiv.org/abs/1606.08415](https://arxiv.org/abs/1606.08415)
 
-[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.
+[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013. [https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf](https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf)
 
-[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(1): 1929–1958.
+[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(56): 1929–1958. [https://jmlr.org/papers/v15/srivastava14a.html](https://jmlr.org/papers/v15/srivastava14a.html)
 
-[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015.
+[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015. [https://proceedings.mlr.press/v37/ioffe15.html](https://proceedings.mlr.press/v37/ioffe15.html)
 
-[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. arXiv:1412.6980.
+[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. [https://arxiv.org/abs/1412.6980](https://arxiv.org/abs/1412.6980)
 
-[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012.
+[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012. [https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf](https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf)
 
-[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012.
+[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012. [https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html](https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html)
 
 ---
 

@@ -127,16 +127,16 @@ p code, li code, td code { background: #f4f4f4; padding: 0 4px; }
 <p>Fashion-MNIST 的类间差距比 MNIST 大，消融差出现在百分位上。协议：种子 42，验证集选优，测试集只评一次。</p>
 <hr>
 <h2>4 参考文献</h2>
-<p>[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. DOI: 10.1109/5.726791.</p>
-<p>[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017.</p>
-<p>[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.</p>
-<p>[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016.</p>
-<p>[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.</p>
-<p>[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(1): 1929–1958.</p>
-<p>[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015.</p>
-<p>[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. arXiv:1412.6980.</p>
-<p>[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012.</p>
-<p>[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012.</p>
+<p>[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. <a href="https://doi.org/10.1109/5.726791">https://doi.org/10.1109/5.726791</a></p>
+<p>[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017. <a href="https://arxiv.org/abs/1708.07747">https://arxiv.org/abs/1708.07747</a></p>
+<p>[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010. <a href="https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf">https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf</a></p>
+<p>[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016. <a href="https://arxiv.org/abs/1606.08415">https://arxiv.org/abs/1606.08415</a></p>
+<p>[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013. <a href="https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf">https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf</a></p>
+<p>[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(56): 1929–1958. <a href="https://jmlr.org/papers/v15/srivastava14a.html">https://jmlr.org/papers/v15/srivastava14a.html</a></p>
+<p>[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015. <a href="https://proceedings.mlr.press/v37/ioffe15.html">https://proceedings.mlr.press/v37/ioffe15.html</a></p>
+<p>[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. <a href="https://arxiv.org/abs/1412.6980">https://arxiv.org/abs/1412.6980</a></p>
+<p>[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012. <a href="https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf">https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf</a></p>
+<p>[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012. <a href="https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html">https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html</a></p>
 <hr>
 <h2>附录 源代码说明</h2>
 <table>
@@ -148,6 +148,7 @@ p code, li code, td code { background: #f4f4f4; padding: 0 4px; }
 <tr><td><code>run_experiment.py</code></td><td>九组消融入口</td></tr>
 <tr><td><code>results/run_manifest.json</code></td><td>种子、设备、版本</td></tr>
 </table>
+<p>代码：https://github.com/yiyun-li/improved-lenet-fashion-mnist</p>
 <pre><code>
 python -m pip install -r requirements.txt
 python run_experiment.py --device auto --epochs 15 --batch-size 128
