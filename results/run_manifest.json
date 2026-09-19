@@ -1,0 +1,9 @@
+{
+  "seed": 42,
+  "epochs": 15,
+  "batch_size": 128,
+  "device": "cuda:0",
+  "torch": "2.4.1+cu118",
+  "cuda": "NVIDIA GeForce RTX 3090",
+  "note": "每个配置在 set_seed 后重建 DataLoader；测试指标来自验证集最优检查点。"
+}

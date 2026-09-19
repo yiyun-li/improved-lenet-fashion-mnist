@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实验三：基于卷积神经网络的服装图像分类</title>
+<style>
+body { font-family: "Noto Serif CJK SC", "Noto Sans CJK SC", serif;
+       max-width: 980px; margin: 32px auto; padding: 0 20px;
+       line-height: 1.65; color: #222; }
+h1,h2,h3 { font-family: "Noto Sans CJK SC", sans-serif; }
+h1 { font-size: 1.7rem; }
+h2 { border-bottom: 2px solid #3182bd; padding-bottom: 4px; margin-top: 2em; }
+figure { margin: 1.2em 0; text-align: center; }
+img { max-width: 100%; height: auto; border: 1px solid #ddd; }
+figcaption { font-size: 0.9rem; color: #555; margin-top: 0.4em; }
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.92rem; }
+th, td { border: 1px solid #ccc; padding: 6px 8px; }
+th { background: #f0f4f8; }
+pre { background: #111; color: #eee; padding: 12px; overflow-x: auto;
+      font-size: 0.85rem; }
+blockquote { background: #eef6fb; border-left: 4px solid #3182bd;
+              padding: 8px 16px; }
+code { font-family: ui-monospace, monospace; }
+p code, li code, td code { background: #f4f4f4; padding: 0 4px; }
+</style>
+</head>
+<body>
+<h1>实验三：基于卷积神经网络的服装图像分类</h1>
+<p>题目：改进 LeNet-5 在 Fashion-MNIST 上的分类  </p>
+<p>框架：PyTorch 2.4.1（CUDA 11.8）  </p>
+<p>设备：NVIDIA GeForce RTX 3090（CPU 亦可复现）</p>
+<p>相对经典 LeNet-5 的三处改动：</p>
+<ul><li>改动 1（激活函数）：tanh 改为 ReLU，并对照 Tanh、GELU、LeakyReLU。</li><li>改动 2（优化方法）：动量 SGD 改为 Adam，并对照 RMSprop。</li><li>改动 3（网络结构）：AvgPool 改为 MaxPool，卷积后加 BatchNorm；Dropout 单独扫描，主结果取 p=0。</li></ul>
+<hr>
+<h2>1 问题描述</h2>
+<h3>1.1 待解决问题、背景与应用前景</h3>
+<p>图像分类把一张图映射到预定义类别。服装图像的判别主要靠领口、袖长和轮廓，不靠全局颜色。CNN 用局部连接和权值共享提取这类空间特征。LeNet-5 给出了 C1–S2–C3–S4–C5–F6 骨架，最初用于手写数字。</p>
+<p>Fashion-MNIST 保持 MNIST 的规模（28×28 灰度，6 万训练 / 1 万测试，10 类均衡），把数字换成服装。衬衫、T 恤、外套、套头衫在低分辨率下外形接近，比手写数字更能看出激活函数、正则化和优化器有没有起作用。这类任务对应商品自动打标和仓储分拣里最简单的一档：小模型、短训练、输出类别。</p>
+<h3>1.2 问题的形式化表述</h3>
+<p>输入 \(x \in \mathbb{R}^{1\times 32\times 32}\)。原图 28×28，四周补 2 像素零，与 LeNet-5 论文的输入尺寸一致。标签 \(y \in \{0,\ldots,9\}\) 依次为 T 恤、裤子、套头衫、连衣裙、外套、凉鞋、衬衫、运动鞋、包、短靴。网络 \(f_\theta\) 输出 10 维 logits，</p>
+<p>\[</p>
+<p>\hat{y}=\arg\max_{k}\operatorname{softmax}(f_\theta(x))_k.</p>
+<p>\]</p>
+<p>训练目标是带 \(\ell_2\) 正则的交叉熵，\(\lambda=10^{-4}\)：</p>
+<p>\[</p>
+<p>\mathcal{L}(\theta)=-\frac{1}{N}\sum_{i=1}^{N}\log\operatorname{softmax}(f_\theta(x_i))_{y_i}+\lambda\|\theta\|_2^2.</p>
+<p>\]</p>
+<p>验证集只用来按准确率存检查点。测试集在训练结束后评估一次，不参与选参。</p>
+<h3>1.3 解决方案与算法</h3>
+<p>对照实验保持骨架和宽度不变（6→16→120→84→10），每次只改一个因素。经典对照：tanh、AvgPool、无 BN、无 Dropout、动量 SGD。改进模型在同一宽度上叠加三处改动，再分别扫激活、Dropout 比例和优化器。测试集差异因此来自被改动的那一项，而不是参数量或划分不同。第二层卷积用现在通行的全连接 C3。</p>
+<figure><img src="../results/figures/fig2_architecture.png" alt="网络结构对照"><figcaption>网络结构对照</figcaption></figure>
+<p>改进模型前向：</p>
+<p>\[</p>
+<p>\begin{aligned}</p>
+<p>h_1&amp;=\operatorname{Dropout2d}_p\big(\operatorname{MaxPool}(\sigma(\operatorname{BN}(\operatorname{Conv}_{6,5\times5}(x))))\big),\\</p>
+<p>h_2&amp;=\operatorname{Dropout2d}_p\big(\operatorname{MaxPool}(\sigma(\operatorname{BN}(\operatorname{Conv}_{16,5\times5}(h_1))))\big),\\</p>
+<p>z&amp;=W_3\,\sigma\big(W_2\,\operatorname{Dropout}_p(\sigma(W_1\operatorname{vec}(h_2)))\big).</p>
+<p>\end{aligned}</p>
+<p>\]</p>
+<pre><code>
+算法  ImprovedLeNet-Train
+输入: D, V, T, 激活 σ, Dropout p, 优化器 Opt, 学习率 η, 轮数 E, 种子 s
+输出: 测试 Acc、Macro-F1、混淆矩阵
+
+1.  set_seed(s)，按 s 重建 DataLoader
+2.  Pad(2)，Normalize(0.5, 0.5)
+3.  构造 f_θ
+4.  for e = 1 to E:
+5.      for (X, y) in D:
+6.          θ ← Opt(θ, ∇ CrossEntropy(f_θ(X), y), η)
+7.      在 V 上 eval，准确率升高则保存 θ*
+8.  用 θ* 在 T 上报告指标
+</code></pre>
+<hr>
+<h2>2 实验设置及分析</h2>
+<h3>2.1 数据集、样例、规模与实验环境</h3>
+<p>Fashion-MNIST：训练 60,000，测试 10,000，每类均衡。种子 42 从训练集划出 10% 作验证，实际为训练 54,000、验证 6,000、测试 10,000。像素先补到 32×32，再线性映射到 [-1,1]。样例如下。</p>
+<figure><img src="../results/figures/fig1_dataset_samples.png" alt="数据集样例"><figcaption>数据集样例</figcaption></figure>
+<p>本机记录：Python 3.10.13，PyTorch 2.4.1+cu118，RTX 3090。batch size 128，15 epoch。SGD 学习率 0.01（动量 0.9），Adam / RMSprop 为 1e-3。每个配置在 <code>set_seed(42)</code> 后重建 DataLoader，避免 shuffle 状态跨实验漂移。报出的测试指标来自验证集最优检查点。改进模型 61,750 参数，经典 61,706，容量同级。单配置约 1 分钟。环境写入 <code>results/run_manifest.json</code>。代码不绑定机器路径，有 CUDA 用 GPU，没有则走 CPU。</p>
+<h3>2.2 实验评价标准</h3>
+<p>主指标：测试集 Top-1 准确率。Macro-F1 按 10 类等权平均。混淆矩阵和逐类 F1 用来看错在哪几类。验证曲线看收敛。划分和种子全组共用；验证集只选检查点。</p>
+<h3>2.3 实验结果</h3>
+<p>九组配置顺序跑完。主结果是 ReLU + BatchNorm + MaxPool + Adam，Dropout p=0：测试准确率 90.45%，Macro-F1 0.9046，测试损失 0.2674。经典 LeNet-5 为 88.74% / 0.8869，相差 1.71 个百分点。该配置的验证准确率也最高（90.77%）。</p>
+<figure><img src="../results/figures/fig16_train_log.png" alt="训练日志"><figcaption>训练日志</figcaption></figure>
+<table>
+<tr><th>配置</th><th>实验角色</th><th>Test Acc</th><th>Macro-F1</th><th>最佳 Val Acc</th><th>Test Loss</th></tr>
+<tr><td>经典LeNet</td><td>基线：tanh + AvgPool + SGD</td><td>0.8874</td><td>0.8869</td><td>0.8935</td><td>0.3052</td></tr>
+<tr><td>改进-ReLU-d0.3-Adam</td><td>三处改动 + Dropout 0.3</td><td>0.8848</td><td>0.8839</td><td>0.8917</td><td>0.3086</td></tr>
+<tr><td>改进-Tanh-d0.3-Adam</td><td>激活消融</td><td>0.8922</td><td>0.8914</td><td>0.8933</td><td>0.3037</td></tr>
+<tr><td>改进-GELU-d0.3-Adam</td><td>激活消融</td><td>0.8932</td><td>0.8929</td><td>0.8963</td><td>0.2915</td></tr>
+<tr><td>改进-LeakyReLU-d0.3-Adam</td><td>激活消融</td><td>0.8889</td><td>0.8885</td><td>0.8933</td><td>0.3044</td></tr>
+<tr><td>改进-ReLU-d0.0-Adam</td><td>主模型</td><td>0.9045</td><td>0.9046</td><td>0.9077</td><td>0.2674</td></tr>
+<tr><td>改进-ReLU-d0.5-Adam</td><td>Dropout 扫描</td><td>0.8602</td><td>0.8556</td><td>0.8720</td><td>0.3602</td></tr>
+<tr><td>改进-ReLU-d0.3-SGD</td><td>优化器消融</td><td>0.8836</td><td>0.8838</td><td>0.8905</td><td>0.3145</td></tr>
+<tr><td>改进-ReLU-d0.3-RMSprop</td><td>优化器消融</td><td>0.8874</td><td>0.8858</td><td>0.8907</td><td>0.3126</td></tr>
+</table>
+<p>验证曲线上，p=0 的损失最低、准确率最高，15 个 epoch 内稳住。</p>
+<figure><img src="../results/figures/fig3_all_val_curves.png" alt="全部验证曲线"><figcaption>全部验证曲线</figcaption></figure>
+<figure><img src="../results/figures/fig18_classic_vs_best.png" alt="经典 vs 改进"><figcaption>经典 vs 改进</figcaption></figure>
+<p>改动 1。固定 BN、MaxPool、Dropout=0.3 和 Adam 后，四种激活的测试准确率在 88.48%–89.32%。这一档里 GELU 最高（89.32%）。主模型仍用 ReLU，因为它和 p=0 组成全局最好的一组。</p>
+<figure><img src="../results/figures/fig8_activation_bars.png" alt="激活函数柱状图"><figcaption>激活函数柱状图</figcaption></figure>
+<figure><img src="../results/figures/fig4_activation_curves.png" alt="激活函数曲线"><figcaption>激活函数曲线</figcaption></figure>
+<p>改动 3。固定 ReLU、BN、MaxPool 和 Adam，p 取 0 / 0.3 / 0.5：测试准确率分别为 90.45%、88.48%、86.02%。Dropout 是为过参数化网络准备的。这里大约 6.2 万参数、5.4 万训练样本，容量和数据同量级，BN 已经在稳训练。对这个 LeNet，工作点在 p=0。</p>
+<figure><img src="../results/figures/fig9_dropout_bars.png" alt="Dropout 柱状图"><figcaption>Dropout 柱状图</figcaption></figure>
+<figure><img src="../results/figures/fig5_dropout_curves.png" alt="Dropout 曲线"><figcaption>Dropout 曲线</figcaption></figure>
+<p>改动 2。固定 ReLU、Dropout=0.3、BN 和 MaxPool，15 epoch、各优化器常用学习率下，Adam 和 RMSprop 的验证曲线升得更快。主模型用 Adam，在 p=0 上测到 90.45%。比较口径是固定轮数加常用学习率，也就是这次作业的训练预算。</p>
+<figure><img src="../results/figures/fig10_optimizer_bars.png" alt="优化器柱状图"><figcaption>优化器柱状图</figcaption></figure>
+<figure><img src="../results/figures/fig6_optimizer_curves.png" alt="优化器曲线"><figcaption>优化器曲线</figcaption></figure>
+<p>第一层 6 个卷积核的特征图见下。短靴和裤子剪影完整；套头衫的响应对在边缘和高亮区。</p>
+<figure><img src="../results/figures/fig13_feature_maps.png" alt="特征图"><figcaption>特征图</figcaption></figure>
+<p>主模型混淆矩阵对角占优。裤子、凉鞋、包、短靴几乎不分错。剩下的错误集中在 T 恤、衬衫、套头衫、外套。28×28 里这几类外形本来就近。</p>
+<figure><img src="../results/figures/fig17_confusion_best.png" alt="最佳混淆矩阵"><figcaption>最佳混淆矩阵</figcaption></figure>
+<hr>
+<h2>3 实验讨论与 Case Study</h2>
+<p>改进后测试准确率从 88.74% 到 90.45%。难类也一起上去：衬衫 F1 0.692 → 0.735，套头衫 0.805 → 0.856，T 恤 0.829 → 0.851。ReLU、BN 和 MaxPool 出局部特征，Adam 在 15 轮里把损失压下来，Dropout 按这个网络的容量取 p=0。</p>
+<figure><img src="../results/figures/fig19_per_class_f1.png" alt="逐类 F1"><figcaption>逐类 F1</figcaption></figure>
+<p>错例几乎都是上装互认：衬衫看成套头衫，T 恤看成衬衫，套头衫看成外套。领口和门襟在 28×28 里只有几个像素。连衣裙下摆收成一块深色时，轮廓会像包。对的例子多是裤子、短靴、包、凉鞋，外轮廓本身分得开，和 C1 特征图、混淆矩阵对角一致。</p>
+<figure><img src="../results/figures/fig15_case_wrong.png" alt="错误样例"><figcaption>错误样例</figcaption></figure>
+<figure><img src="../results/figures/fig14_case_correct.png" alt="正确样例"><figcaption>正确样例</figcaption></figure>
+<p>三处改动与证据对应：</p>
+<table>
+<tr><th>编号</th><th>相对原版 LeNet-5</th><th>证据</th></tr>
+<tr><td>改动 1</td><td>tanh → ReLU（并测 GELU / LeakyReLU / Tanh）</td><td>激活消融；与 p=0 组成 90.45%</td></tr>
+<tr><td>改动 2</td><td>SGD → Adam（并测 RMSprop）</td><td>优化器消融；15 epoch、常用学习率</td></tr>
+<tr><td>改动 3</td><td>AvgPool → MaxPool，加 BN；Dropout 取 p=0</td><td>结构对照 + Dropout 扫描</td></tr>
+</table>
+<p>Fashion-MNIST 的类间差距比 MNIST 大，消融差出现在百分位上。协议：种子 42，验证集选优，测试集只评一次。</p>
+<hr>
+<h2>4 参考文献</h2>
+<p>[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. DOI: 10.1109/5.726791.</p>
+<p>[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017.</p>
+<p>[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.</p>
+<p>[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016.</p>
+<p>[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.</p>
+<p>[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(1): 1929–1958.</p>
+<p>[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015.</p>
+<p>[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. arXiv:1412.6980.</p>
+<p>[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012.</p>
+<p>[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012.</p>
+<hr>
+<h2>附录 源代码说明</h2>
+<table>
+<tr><th>文件</th><th>作用</th></tr>
+<tr><td><code>src/models.py</code></td><td>经典 / 改进 LeNet</td></tr>
+<tr><td><code>src/data.py</code></td><td>划分与按种子重建 DataLoader</td></tr>
+<tr><td><code>src/engine.py</code></td><td>训练、验证选优、测试</td></tr>
+<tr><td><code>src/plots.py</code></td><td>作图</td></tr>
+<tr><td><code>run_experiment.py</code></td><td>九组消融入口</td></tr>
+<tr><td><code>results/run_manifest.json</code></td><td>种子、设备、版本</td></tr>
+</table>
+<pre><code>
+python -m pip install -r requirements.txt
+python run_experiment.py --device auto --epochs 15 --batch-size 128
+</code></pre>
+<p>有 GPU 时会自动用 CUDA；指定某张卡可以先 <code>export CUDA_VISIBLE_DEVICES=0</code>。数据第一次运行下载到 <code>./data/</code>。</p>
+<pre><code>
+class LeNetFamily(nn.Module):
+    def __init__(self, activation=&quot;relu&quot;, pooling=&quot;max&quot;,
+                 use_bn=True, dropout=0.3, num_classes=10):
+        super().__init__()
+        act_ctor = get_activation(activation)          # 改动1
+        pool_cls = nn.MaxPool2d if pooling == &quot;max&quot; else nn.AvgPool2d  # 改动3
+        self.conv1 = nn.Conv2d(1, 6, 5)
+        self.bn1 = nn.BatchNorm2d(6) if use_bn else nn.Identity()      # 改动3
+</code></pre>
+<p>经典对照：<code>activation=&quot;tanh&quot;, pooling=&quot;avg&quot;, use_bn=False, dropout=0</code>，优化器 SGD。  </p>
+<p>主模型：<code>activation=&quot;relu&quot;, pooling=&quot;max&quot;, use_bn=True, dropout=0</code>，优化器 Adam。</p>
+</body>
+</html>

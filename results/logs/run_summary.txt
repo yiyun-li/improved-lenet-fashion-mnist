@@ -1,0 +1,40 @@
+device=cuda:0  epochs=15  batch=128
+
+=== 经典LeNet | act=tanh  drop=0.0  opt=sgd  lr=0.01  params=61706 ===
+  test_acc=0.8874  test_f1=0.8869  val_acc=0.8935
+
+=== 改进-ReLU-d0.3-Adam | act=relu  drop=0.3  opt=adam  lr=0.001  params=61750 ===
+  test_acc=0.8848  test_f1=0.8839  val_acc=0.8917
+
+=== 改进-Tanh-d0.3-Adam | act=tanh  drop=0.3  opt=adam  lr=0.001  params=61750 ===
+  test_acc=0.8922  test_f1=0.8914  val_acc=0.8933
+
+=== 改进-GELU-d0.3-Adam | act=gelu  drop=0.3  opt=adam  lr=0.001  params=61750 ===
+  test_acc=0.8932  test_f1=0.8929  val_acc=0.8963
+
+=== 改进-LeakyReLU-d0.3-Adam | act=leakyrelu  drop=0.3  opt=adam  lr=0.001  params=61750 ===
+  test_acc=0.8889  test_f1=0.8885  val_acc=0.8933
+
+=== 改进-ReLU-d0.0-Adam | act=relu  drop=0.0  opt=adam  lr=0.001  params=61750 ===
+  test_acc=0.9045  test_f1=0.9046  val_acc=0.9077
+
+=== 改进-ReLU-d0.5-Adam | act=relu  drop=0.5  opt=adam  lr=0.001  params=61750 ===
+  test_acc=0.8602  test_f1=0.8556  val_acc=0.8720
+
+=== 改进-ReLU-d0.3-SGD | act=relu  drop=0.3  opt=sgd  lr=0.01  params=61750 ===
+  test_acc=0.8836  test_f1=0.8838  val_acc=0.8905
+
+=== 改进-ReLU-d0.3-RMSprop | act=relu  drop=0.3  opt=rmsprop  lr=0.001  params=61750 ===
+  test_acc=0.8874  test_f1=0.8858  val_acc=0.8907
+
+实验配置                          Acc     Macro-F1   ValAcc
+--------------------------------------------------------------
+经典LeNet                         0.8874  0.8869    0.8935
+改进-ReLU-d0.3-Adam               0.8848  0.8839    0.8917
+改进-Tanh-d0.3-Adam               0.8922  0.8914    0.8933
+改进-GELU-d0.3-Adam               0.8932  0.8929    0.8963
+改进-LeakyReLU-d0.3-Adam          0.8889  0.8885    0.8933
+改进-ReLU-d0.0-Adam               0.9045  0.9046    0.9077
+改进-ReLU-d0.5-Adam               0.8602  0.8556    0.8720
+改进-ReLU-d0.3-SGD                0.8836  0.8838    0.8905
+改进-ReLU-d0.3-RMSprop            0.8874  0.8858    0.8907
