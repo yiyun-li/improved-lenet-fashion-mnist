@@ -194,6 +194,8 @@ Fashion-MNIST 的类间差距比 MNIST 大，消融差出现在百分位上。�
 | `run_experiment.py` | 九组消融入口 |
 | `results/run_manifest.json` | 种子、设备、版本 |
 
+代码：https://github.com/yiyun-li/improved-lenet-fashion-mnist
+
 ```bash
 python -m pip install -r requirements.txt
 python run_experiment.py --device auto --epochs 15 --batch-size 128

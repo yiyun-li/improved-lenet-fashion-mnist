@@ -15,7 +15,7 @@
 | 经典 LeNet-5 | 88.74% | 0.8869 |
 | ReLU + BN + MaxPool + Adam，p=0 | 90.45% | 0.9046 |
 
-报告：[`report/experiment_report.md`](report/experiment_report.md)。图在 `results/figures/`。
+报告：[`report/experiment_report.md`](report/experiment_report.md)。图在 `results/figures/`。仓库：https://github.com/yiyun-li/improved-lenet-fashion-mnist
 
 ## 运行
 
