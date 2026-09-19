@@ -17,8 +17,8 @@ def convert(md: str) -> str:
     out: list[str] = []
     i = 0
     in_code = False
-    in_table = False
     in_quote = False
+    in_refs = False
 
     def flush_quote() -> None:
         nonlocal in_quote
@@ -87,7 +87,10 @@ def convert(md: str) -> str:
         if line.startswith("# "):
             out.append(f"<h1>{inline(line[2:])}</h1>")
         elif line.startswith("## "):
-            out.append(f"<h2>{inline(line[3:])}</h2>")
+            title = line[3:]
+            if "参考文献" in title:
+                in_refs = True
+            out.append(f"<h2>{inline(title)}</h2>")
         elif line.startswith("### "):
             out.append(f"<h3>{inline(line[4:])}</h3>")
         elif line.startswith("#### "):
@@ -112,7 +115,12 @@ def convert(md: str) -> str:
         elif line.strip() == "":
             pass
         else:
-            out.append(f"<p>{inline(line)}</p>")
+            bib = re.match(r"^\[(\d+)\]\s+(.*)$", line.strip()) if in_refs else None
+            if bib:
+                n, rest = bib.group(1), bib.group(2)
+                out.append(f'<p id="ref-{n}" class="ref">[{n}] {inline(rest, cite=False)}</p>')
+            else:
+                out.append(f"<p>{inline(line)}</p>")
         i += 1
     flush_quote()
     if in_code:
@@ -120,11 +128,17 @@ def convert(md: str) -> str:
     return "\n".join(out)
 
 
-def inline(text: str) -> str:
+def inline(text: str, cite: bool = True) -> str:
     text = html.escape(text)
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
     text = re.sub(r"\[([^\[\]]+)\]\(([^)\s]+)\)", r'<a href="\2">\1</a>', text)
+    if cite:
+        text = re.sub(
+            r"\[(\d+)\]",
+            r'<a class="cite" href="#ref-\1">[\1]</a>',
+            text,
+        )
     return text
 
 
@@ -154,6 +168,9 @@ blockquote {{ background: #eef6fb; border-left: 4px solid #3182bd;
               padding: 8px 16px; }}
 code {{ font-family: ui-monospace, monospace; }}
 p code, li code, td code {{ background: #f4f4f4; padding: 0 4px; }}
+a.cite {{ color: #1a5f9e; text-decoration: none; font-weight: 600; }}
+a.cite:hover {{ text-decoration: underline; }}
+.ref:target {{ background: #fff6d6; outline: 2px solid #e2c35a; }}
 </style>
 </head>
 <body>

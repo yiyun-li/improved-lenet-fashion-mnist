@@ -22,6 +22,9 @@ blockquote { background: #eef6fb; border-left: 4px solid #3182bd;
               padding: 8px 16px; }
 code { font-family: ui-monospace, monospace; }
 p code, li code, td code { background: #f4f4f4; padding: 0 4px; }
+a.cite { color: #1a5f9e; text-decoration: none; font-weight: 600; }
+a.cite:hover { text-decoration: underline; }
+.ref:target { background: #fff6d6; outline: 2px solid #e2c35a; }
 </style>
 </head>
 <body>
@@ -30,14 +33,14 @@ p code, li code, td code { background: #f4f4f4; padding: 0 4px; }
 <p>框架：PyTorch 2.4.1（CUDA 11.8）  </p>
 <p>设备：NVIDIA GeForce RTX 3090（CPU 亦可复现）</p>
 <p>相对经典 LeNet-5 的三处改动：</p>
-<ul><li>改动 1（激活函数）：tanh 改为 ReLU，并对照 Tanh、GELU、LeakyReLU。</li><li>改动 2（优化方法）：动量 SGD 改为 Adam，并对照 RMSprop。</li><li>改动 3（网络结构）：AvgPool 改为 MaxPool，卷积后加 BatchNorm；Dropout 单独扫描，主结果取 p=0。</li></ul>
+<ul><li>改动 1（激活函数）：tanh 改为 ReLU<a class="cite" href="#ref-3">[3]</a>，并对照 Tanh、GELU<a class="cite" href="#ref-4">[4]</a>、LeakyReLU<a class="cite" href="#ref-5">[5]</a>。</li><li>改动 2（优化方法）：动量 SGD 改为 Adam<a class="cite" href="#ref-8">[8]</a>，并对照 RMSprop<a class="cite" href="#ref-9">[9]</a>。</li><li>改动 3（网络结构）：AvgPool 改为 MaxPool<a class="cite" href="#ref-10">[10]</a>，卷积后加 BatchNorm<a class="cite" href="#ref-7">[7]</a>；Dropout<a class="cite" href="#ref-6">[6]</a> 单独扫描，主结果取 p=0。</li></ul>
 <hr>
 <h2>1 问题描述</h2>
 <h3>1.1 待解决问题、背景与应用前景</h3>
-<p>图像分类把一张图映射到预定义类别。服装图像的判别主要靠领口、袖长和轮廓，不靠全局颜色。CNN 用局部连接和权值共享提取这类空间特征。LeNet-5 给出了 C1–S2–C3–S4–C5–F6 骨架，最初用于手写数字。</p>
-<p>Fashion-MNIST 保持 MNIST 的规模（28×28 灰度，6 万训练 / 1 万测试，10 类均衡），把数字换成服装。衬衫、T 恤、外套、套头衫在低分辨率下外形接近，比手写数字更能看出激活函数、正则化和优化器有没有起作用。这类任务对应商品自动打标和仓储分拣里最简单的一档：小模型、短训练、输出类别。</p>
+<p>图像分类把一张图映射到预定义类别。服装图像的判别主要靠领口、袖长和轮廓，不靠全局颜色。CNN 用局部连接和权值共享提取这类空间特征。LeNet-5 给出了 C1–S2–C3–S4–C5–F6 骨架，最初用于手写数字<a class="cite" href="#ref-1">[1]</a>。</p>
+<p>Fashion-MNIST<a class="cite" href="#ref-2">[2]</a> 保持 MNIST 的规模（28×28 灰度，6 万训练 / 1 万测试，10 类均衡），把数字换成服装。衬衫、T 恤、外套、套头衫在低分辨率下外形接近，比手写数字更能看出激活函数、正则化和优化器有没有起作用。这类任务对应商品自动打标和仓储分拣里最简单的一档：小模型、短训练、输出类别。</p>
 <h3>1.2 问题的形式化表述</h3>
-<p>输入 \(x \in \mathbb{R}^{1\times 32\times 32}\)。原图 28×28，四周补 2 像素零，与 LeNet-5 论文的输入尺寸一致。标签 \(y \in \{0,\ldots,9\}\) 依次为 T 恤、裤子、套头衫、连衣裙、外套、凉鞋、衬衫、运动鞋、包、短靴。网络 \(f_\theta\) 输出 10 维 logits，</p>
+<p>输入 \(x \in \mathbb{R}^{1\times 32\times 32}\)。原图 28×28，四周补 2 像素零，与 LeNet-5 论文的输入尺寸一致<a class="cite" href="#ref-1">[1]</a>。标签 \(y \in \{0,\ldots,9\}\) 依次为 T 恤、裤子、套头衫、连衣裙、外套、凉鞋、衬衫、运动鞋、包、短靴。网络 \(f_\theta\) 输出 10 维 logits，</p>
 <p>\[</p>
 <p>\hat{y}=\arg\max_{k}\operatorname{softmax}(f_\theta(x))_k.</p>
 <p>\]</p>
@@ -127,16 +130,16 @@ p code, li code, td code { background: #f4f4f4; padding: 0 4px; }
 <p>Fashion-MNIST 的类间差距比 MNIST 大，消融差出现在百分位上。协议：种子 42，验证集选优，测试集只评一次。</p>
 <hr>
 <h2>4 参考文献</h2>
-<p>[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. <a href="https://doi.org/10.1109/5.726791">https://doi.org/10.1109/5.726791</a></p>
-<p>[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017. <a href="https://arxiv.org/abs/1708.07747">https://arxiv.org/abs/1708.07747</a></p>
-<p>[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010. <a href="https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf">https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf</a></p>
-<p>[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016. <a href="https://arxiv.org/abs/1606.08415">https://arxiv.org/abs/1606.08415</a></p>
-<p>[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013. <a href="https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf">https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf</a></p>
-<p>[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(56): 1929–1958. <a href="https://jmlr.org/papers/v15/srivastava14a.html">https://jmlr.org/papers/v15/srivastava14a.html</a></p>
-<p>[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015. <a href="https://proceedings.mlr.press/v37/ioffe15.html">https://proceedings.mlr.press/v37/ioffe15.html</a></p>
-<p>[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. <a href="https://arxiv.org/abs/1412.6980">https://arxiv.org/abs/1412.6980</a></p>
-<p>[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012. <a href="https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf">https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf</a></p>
-<p>[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012. <a href="https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html">https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html</a></p>
+<p id="ref-1" class="ref">[1] LeCun Y, Bottou L, Bengio Y, Haffner P. Gradient-based learning applied to document recognition. Proceedings of the IEEE, 1998, 86(11): 2278–2324. <a href="https://doi.org/10.1109/5.726791">https://doi.org/10.1109/5.726791</a></p>
+<p id="ref-2" class="ref">[2] Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. arXiv:1708.07747, 2017. <a href="https://arxiv.org/abs/1708.07747">https://arxiv.org/abs/1708.07747</a></p>
+<p id="ref-3" class="ref">[3] Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010. <a href="https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf">https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf</a></p>
+<p id="ref-4" class="ref">[4] Hendrycks D, Gimpel K. Gaussian error linear units (GELUs). arXiv:1606.08415, 2016. <a href="https://arxiv.org/abs/1606.08415">https://arxiv.org/abs/1606.08415</a></p>
+<p id="ref-5" class="ref">[5] Maas A L, Hannun A Y, Ng A Y. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013. <a href="https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf">https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf</a></p>
+<p id="ref-6" class="ref">[6] Srivastava N, Hinton G, Krizhevsky A, Sutskever I, Salakhutdinov R. Dropout: a simple way to prevent neural networks from overfitting. JMLR, 2014, 15(56): 1929–1958. <a href="https://jmlr.org/papers/v15/srivastava14a.html">https://jmlr.org/papers/v15/srivastava14a.html</a></p>
+<p id="ref-7" class="ref">[7] Ioffe S, Szegedy C. Batch normalization: accelerating deep network training by reducing internal covariate shift. ICML, 2015. <a href="https://proceedings.mlr.press/v37/ioffe15.html">https://proceedings.mlr.press/v37/ioffe15.html</a></p>
+<p id="ref-8" class="ref">[8] Kingma D P, Ba J. Adam: a method for stochastic optimization. ICLR, 2015. <a href="https://arxiv.org/abs/1412.6980">https://arxiv.org/abs/1412.6980</a></p>
+<p id="ref-9" class="ref">[9] Tieleman T, Hinton G. Lecture 6.5—RMSProp. COURSERA: Neural Networks for Machine Learning, 2012. <a href="https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf">https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf</a></p>
+<p id="ref-10" class="ref">[10] Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012. <a href="https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html">https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html</a></p>
 <hr>
 <h2>附录 源代码说明</h2>
 <table>

@@ -29,6 +29,27 @@ def td(s: str) -> str:
     return f"<td><p>{t(s)}</p></td>"
 
 
+PAPER_URL = {
+    1: "https://doi.org/10.1109/5.726791",
+    2: "https://arxiv.org/abs/1708.07747",
+    3: "https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf",
+    4: "https://arxiv.org/abs/1606.08415",
+    5: "https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf",
+    6: "https://jmlr.org/papers/v15/srivastava14a.html",
+    7: "https://proceedings.mlr.press/v37/ioffe15.html",
+    8: "https://arxiv.org/abs/1412.6980",
+    9: "https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf",
+    10: "https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html",
+}
+
+
+def cite(*nums: int) -> str:
+    inner = "".join(
+        f'<a href="{t(PAPER_URL[n])}" url-type="5">[{n}]</a>' for n in nums
+    )
+    return f'<cite type="citation">{inner}</cite>'
+
+
 def tr(cells: list[str], header: bool = False) -> str:
     inner = "".join(th(c) if header else td(c) for c in cells)
     return f"<tr>{inner}</tr>"
@@ -46,9 +67,9 @@ def build() -> str:
     parts.append("<title>实验三：基于卷积神经网络的服装图像分类</title>")
     parts.append(
         '<callout emoji="📌" background-color="light-blue" border-color="blue">'
-        "<p><b>改动 1｜激活函数</b> tanh 改为 ReLU，并对照 Tanh、GELU、LeakyReLU。</p>"
-        "<p><b>改动 2｜优化方法</b> 动量 SGD 改为 Adam，并对照 RMSprop。</p>"
-        "<p><b>改动 3｜网络结构</b> AvgPool 改为 MaxPool，加 BatchNorm；Dropout 扫描后主结果取 p=0。</p>"
+        f"<p><b>改动 1｜激活函数</b> tanh 改为 ReLU{cite(3)}，并对照 Tanh、GELU{cite(4)}、LeakyReLU{cite(5)}。</p>"
+        f"<p><b>改动 2｜优化方法</b> 动量 SGD 改为 Adam{cite(8)}，并对照 RMSprop{cite(9)}。</p>"
+        f"<p><b>改动 3｜网络结构</b> AvgPool 改为 MaxPool{cite(10)}，加 BatchNorm{cite(7)}；Dropout{cite(6)} 扫描后主结果取 p=0。</p>"
         "</callout>"
     )
     parts.append(
@@ -57,11 +78,11 @@ def build() -> str:
 
     parts.append('<h1 seq="auto">问题描述</h1>')
     parts.append('<h2 seq="auto">待解决问题、背景与应用前景</h2>')
-    parts.append(p("图像分类把一张图映射到预定义类别。服装图像的判别主要靠领口、袖长和轮廓。CNN 用局部连接和权值共享提取空间特征。LeNet-5 给出 C1–S2–C3–S4–C5–F6 骨架，最初用于手写数字。"))
-    parts.append(p("Fashion-MNIST 保持 MNIST 的规模（28×28 灰度，6 万训练 / 1 万测试，10 类均衡），把数字换成服装。衬衫、T 恤、外套、套头衫在低分辨率下外形接近，比手写数字更能看出激活函数、正则化和优化器有没有起作用。"))
+    parts.append(f"<p>图像分类把一张图映射到预定义类别。服装图像的判别主要靠领口、袖长和轮廓。CNN 用局部连接和权值共享提取空间特征。LeNet-5 给出 C1–S2–C3–S4–C5–F6 骨架，最初用于手写数字{cite(1)}。</p>")
+    parts.append(f"<p>Fashion-MNIST{cite(2)} 保持 MNIST 的规模（28×28 灰度，6 万训练 / 1 万测试，10 类均衡），把数字换成服装。衬衫、T 恤、外套、套头衫在低分辨率下外形接近，比手写数字更能看出激活函数、正则化和优化器有没有起作用。</p>")
 
     parts.append('<h2 seq="auto">问题的形式化表述</h2>')
-    parts.append(p("输入为 1×32×32：原图 28×28 四周补 2 像素零。标签为 10 类服装。网络输出 10 维 logits，预测取 softmax 的 argmax。训练用带 L2 正则（λ=10⁻⁴）的交叉熵。验证集只按准确率存检查点，测试集训练结束后评估一次。"))
+    parts.append(f"<p>输入为 1×32×32：原图 28×28 四周补 2 像素零，与 LeNet-5 论文一致{cite(1)}。标签为 10 类服装。网络输出 10 维 logits，预测取 softmax 的 argmax。训练用带 L2 正则（λ=10⁻⁴）的交叉熵。验证集只按准确率存检查点，测试集训练结束后评估一次。</p>")
     parts.append("<p>预测：<latex>\\hat{y}=\\arg\\max_{k}\\operatorname{softmax}(f_\\theta(x))_k</latex></p>")
 
     parts.append('<h2 seq="auto">解决方案与算法</h2>')
@@ -141,49 +162,23 @@ def build() -> str:
 
     parts.append('<h1 seq="auto">参考文献</h1>')
     refs = [
-        (
-            "LeCun Y, et al. Gradient-based learning applied to document recognition. Proc. IEEE, 1998.",
-            "https://doi.org/10.1109/5.726791",
-        ),
-        (
-            "Xiao H, Rasul K, Vollgraf R. Fashion-MNIST. arXiv:1708.07747, 2017.",
-            "https://arxiv.org/abs/1708.07747",
-        ),
-        (
-            "Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.",
-            "https://www.cs.toronto.edu/~hinton/absps/reluICML.pdf",
-        ),
-        (
-            "Hendrycks D, Gimpel K. GELUs. arXiv:1606.08415, 2016.",
-            "https://arxiv.org/abs/1606.08415",
-        ),
-        (
-            "Maas A L, et al. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.",
-            "https://ai.stanford.edu/~amaas/papers/relu_hybrid_icml2013_final.pdf",
-        ),
-        (
-            "Srivastava N, et al. Dropout. JMLR, 2014, 15(1): 1929–1958.",
-            "https://jmlr.org/papers/v15/srivastava14a.html",
-        ),
-        (
-            "Ioffe S, Szegedy C. Batch normalization. ICML, 2015.",
-            "https://proceedings.mlr.press/v37/ioffe15.html",
-        ),
-        (
-            "Kingma D P, Ba J. Adam. ICLR, 2015. arXiv:1412.6980.",
-            "https://arxiv.org/abs/1412.6980",
-        ),
-        (
-            "Tieleman T, Hinton G. RMSProp. COURSERA, 2012.",
-            "https://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf",
-        ),
+        ("LeCun Y, et al. Gradient-based learning applied to document recognition. Proc. IEEE, 1998.", 1),
+        ("Xiao H, Rasul K, Vollgraf R. Fashion-MNIST. arXiv:1708.07747, 2017.", 2),
+        ("Nair V, Hinton G E. Rectified linear units improve restricted Boltzmann machines. ICML, 2010.", 3),
+        ("Hendrycks D, Gimpel K. GELUs. arXiv:1606.08415, 2016.", 4),
+        ("Maas A L, et al. Rectifier nonlinearities improve neural network acoustic models. ICML Workshop, 2013.", 5),
+        ("Srivastava N, et al. Dropout. JMLR, 2014, 15(56): 1929–1958.", 6),
+        ("Ioffe S, Szegedy C. Batch normalization. ICML, 2015.", 7),
+        ("Kingma D P, Ba J. Adam. ICLR, 2015. arXiv:1412.6980.", 8),
+        ("Tieleman T, Hinton G. RMSProp. COURSERA, 2012.", 9),
         (
             "Krizhevsky A, Sutskever I, Hinton G E. ImageNet classification with deep convolutional neural networks. NeurIPS, 2012.",
-            "https://proceedings.neurips.cc/paper/2012/hash/c399862d3b9d6b76c8436e924a68c45b-Abstract.html",
+            10,
         ),
     ]
     lis = "".join(
-        f'<li>{t(text)} <a href="{t(url)}">{t(url)}</a></li>' for text, url in refs
+        f'<li>{t(text)} <a href="{t(PAPER_URL[n])}">{t(PAPER_URL[n])}</a></li>'
+        for text, n in refs
     )
     parts.append(f"<ol>{lis}</ol>")
 
